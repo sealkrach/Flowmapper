@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FlowMapper — architectures applicatives depuis les flux Illumio</title>
+<title>FlowMapper — application architectures from Illumio flows</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="static/style.css">
 </head>
@@ -13,142 +13,142 @@
     <span class="logo" aria-hidden="true"></span>
     <div>
       <div class="title">FlowMapper</div>
-      <div class="subtitle" id="dataset-summary">Aucun jeu de flux chargé</div>
+      <div class="subtitle" id="dataset-summary">No flow dataset loaded</div>
     </div>
   </div>
   <div class="topbar-actions">
-    <label class="btn" for="file-input">Importer des flux Illumio
+    <label class="btn" for="file-input">Import Illumio flows
       <input type="file" id="file-input" multiple accept=".csv,.json,.log,.txt,.ndjson" hidden>
     </label>
-    <button class="btn ghost" id="btn-chat" title="Discuter avec l'agent">Agent</button>
-    <button class="btn ghost" id="btn-theme" title="Thème clair / sombre">◐</button>
+    <button class="btn ghost" id="btn-chat" title="Chat with the agent">Agent</button>
+    <button class="btn ghost" id="btn-theme" title="Light / dark theme">◐</button>
   </div>
 </header>
 
 <main class="layout">
   <aside class="sidebar" id="sidebar">
     <section>
-      <h3>Vue</h3>
-      <div class="seg" role="group" aria-label="Niveau">
+      <h3>View</h3>
+      <div class="seg" role="group" aria-label="Level">
         <button data-level="app" class="active">Applications</button>
         <button data-level="workload">Workloads</button>
       </div>
-      <label>Environnement
-        <select id="f-env"><option value="">Tous</option></select>
+      <label>Environment
+        <select id="f-env"><option value="">All</option></select>
       </label>
       <label>Focus application
-        <select id="f-app"><option value="">Toutes</option></select>
+        <select id="f-app"><option value="">All</option></select>
       </label>
-      <label class="search">Rechercher
+      <label class="search">Search
         <input type="search" id="f-search" placeholder="hostname, IP, application…">
       </label>
     </section>
 
     <section>
-      <h3>Filtres</h3>
-      <label class="check"><input type="checkbox" id="f-hide-infra" checked> Masquer l'infra partagée (AD, DNS, NTP, monitoring)</label>
-      <label class="check"><input type="checkbox" id="f-hide-shared"> Masquer tous les services partagés</label>
-      <label class="check"><input type="checkbox" id="f-hide-external"> Masquer les IP externes / non gérées</label>
-      <label class="check"><input type="checkbox" id="f-hide-agents" checked> Masquer les flux d'administration (ssh, agents)</label>
+      <h3>Filters</h3>
+      <label class="check"><input type="checkbox" id="f-hide-infra" checked> Hide shared infrastructure (AD, DNS, NTP, monitoring)</label>
+      <label class="check"><input type="checkbox" id="f-hide-shared"> Hide all shared services</label>
+      <label class="check"><input type="checkbox" id="f-hide-external"> Hide external / unmanaged IPs</label>
+      <label class="check"><input type="checkbox" id="f-hide-agents" checked> Hide administration flows (ssh, agents)</label>
       <div class="decisions">
-        <span>Décision de policy</span>
-        <label class="check"><input type="checkbox" data-decision="allowed" checked> <i class="dot allowed"></i> Autorisé</label>
-        <label class="check"><input type="checkbox" data-decision="potentially_blocked" checked> <i class="dot potentially_blocked"></i> Potentiellement bloqué</label>
-        <label class="check"><input type="checkbox" data-decision="blocked" checked> <i class="dot blocked"></i> Bloqué</label>
-        <label class="check"><input type="checkbox" data-decision="unknown" checked> <i class="dot unknown"></i> Inconnu</label>
+        <span>Policy decision</span>
+        <label class="check"><input type="checkbox" data-decision="allowed" checked> <i class="dot allowed"></i> Allowed</label>
+        <label class="check"><input type="checkbox" data-decision="potentially_blocked" checked> <i class="dot potentially_blocked"></i> Potentially blocked</label>
+        <label class="check"><input type="checkbox" data-decision="blocked" checked> <i class="dot blocked"></i> Blocked</label>
+        <label class="check"><input type="checkbox" data-decision="unknown" checked> <i class="dot unknown"></i> Unknown</label>
       </div>
-      <label>Connexions minimales <output id="f-min-out">1</output>
+      <label>Minimum connections <output id="f-min-out">1</output>
         <input type="range" id="f-min" min="0" max="4" step="0.1" value="0">
       </label>
-      <label>Ports (séparés par des virgules)
+      <label>Ports (comma separated)
         <input type="text" id="f-ports" placeholder="443, 5432">
       </label>
-      <label class="check"><input type="checkbox" id="f-tiers" checked> Disposer les workloads par tiers</label>
-      <label class="check"><input type="checkbox" id="f-labels"> Afficher les services sur les flux</label>
+      <label class="check"><input type="checkbox" id="f-tiers" checked> Lay out workloads by tier</label>
+      <label class="check"><input type="checkbox" id="f-labels"> Show services on the flows</label>
     </section>
 
     <section>
-      <h3>Comparer deux périodes</h3>
+      <h3>Compare two periods</h3>
       <label>Application
-        <select id="diff-app"><option value="">Tout le parc</option></select>
+        <select id="diff-app"><option value="">Whole estate</option></select>
       </label>
-      <label>Fenêtre (jours) — B = les N derniers jours, A = les N jours précédents
+      <label>Window (days) — B = the last N days, A = the N days before
         <input type="number" id="diff-days" min="1" max="365" value="30">
       </label>
       <div class="row">
-        <button class="btn small" id="btn-diff">Qu'est-ce qui a changé ?</button>
-        <button class="btn small ghost" id="btn-diff-clear" hidden>Effacer</button>
+        <button class="btn small" id="btn-diff">What changed?</button>
+        <button class="btn small ghost" id="btn-diff-clear" hidden>Clear</button>
       </div>
     </section>
 
     <section>
-      <h3>Enrichissement IA</h3>
+      <h3>AI enrichment</h3>
       <div class="row">
-        <button class="btn small" id="btn-enrich">Enrichir avec l'IA</button>
-        <button class="btn small ghost" id="btn-proposals">Propositions <span class="badge" id="proposals-count" hidden>0</span></button>
+        <button class="btn small" id="btn-enrich">Enrich with AI</button>
+        <button class="btn small ghost" id="btn-proposals">Proposals <span class="badge" id="proposals-count" hidden>0</span></button>
       </div>
-      <div class="muted">Nomme les clusters sans label et qualifie les rôles inconnus. Rien n'est appliqué sans validation.</div>
+      <div class="muted">Names unlabeled clusters and qualifies unknown roles. Nothing is applied without validation.</div>
     </section>
 
     <section>
       <h3>Actions</h3>
       <div class="row">
-        <button class="btn small" id="btn-layout">Relancer la mise en page</button>
-        <button class="btn small" id="btn-fit">Ajuster</button>
+        <button class="btn small" id="btn-layout">Re-run layout</button>
+        <button class="btn small" id="btn-fit">Fit</button>
       </div>
       <div class="row">
         <button class="btn small ghost" id="btn-png">PNG</button>
         <button class="btn small ghost" id="btn-mermaid">Mermaid</button>
-        <button class="btn small ghost" id="btn-markdown">Rapport</button>
+        <button class="btn small ghost" id="btn-markdown">Report</button>
         <button class="btn small ghost" id="btn-graphml">GraphML</button>
       </div>
     </section>
 
     <section class="legend">
-      <h3>Légende</h3>
+      <h3>Legend</h3>
       <div class="legend-grid">
         <span><i class="sw role-web"></i> Web / edge</span>
         <span><i class="sw role-app"></i> API / app / worker</span>
-        <span><i class="sw role-data"></i> Base de données / stockage</span>
+        <span><i class="sw role-data"></i> Database / storage</span>
         <span><i class="sw role-mid"></i> Cache / messaging / search</span>
-        <span><i class="sw role-infra"></i> Infra partagée</span>
-        <span><i class="sw role-unknown"></i> Inconnu / client</span>
-        <span><i class="sw edge allowed"></i> Flux autorisé</span>
-        <span><i class="sw edge potentially_blocked"></i> Potentiellement bloqué</span>
-        <span><i class="sw edge blocked"></i> Bloqué</span>
-        <span><i class="sw cluster"></i> Cluster découvert (sans label)</span>
-        <span><i class="sw ai"></i> Proposition IA en attente</span>
-        <span><i class="sw diff-added"></i> Apparu (diff) · <i class="sw diff-removed"></i> Disparu · <i class="sw diff-changed"></i> Modifié</span>
+        <span><i class="sw role-infra"></i> Shared infrastructure</span>
+        <span><i class="sw role-unknown"></i> Unknown / client</span>
+        <span><i class="sw edge allowed"></i> Allowed flow</span>
+        <span><i class="sw edge potentially_blocked"></i> Potentially blocked</span>
+        <span><i class="sw edge blocked"></i> Blocked</span>
+        <span><i class="sw cluster"></i> Discovered cluster (no label)</span>
+        <span><i class="sw ai"></i> Pending AI proposal</span>
+        <span><i class="sw diff-added"></i> Added (diff) · <i class="sw diff-removed"></i> Removed · <i class="sw diff-changed"></i> Changed</span>
       </div>
     </section>
   </aside>
 
   <section class="canvas-wrap">
-    <div id="cy" role="img" aria-label="Graphe des flux"></div>
+    <div id="cy" role="img" aria-label="Flow graph"></div>
     <div class="empty" id="empty-state">
-      <h2>Importez un export Illumio</h2>
-      <p>Export CSV d'Explorer, téléchargement JSON de l'API <code>traffic_flows/async_queries</code>, ou résumés de flux syslog (JSON par ligne). Les formats sont détectés automatiquement.</p>
+      <h2>Import an Illumio export</h2>
+      <p>Explorer CSV export, JSON download from the <code>traffic_flows/async_queries</code> API, or syslog flow summaries (JSON per line). Formats are detected automatically.</p>
     </div>
     <div class="toast" id="toast" hidden></div>
   </section>
 
   <aside class="details" id="details">
-    <div class="details-empty">Sélectionnez une application, un workload ou un flux.</div>
+    <div class="details-empty">Select an application, a workload or a flow.</div>
   </aside>
 </main>
 
 <section class="chat" id="chat" hidden>
   <header>
-    <strong>Agent FlowMapper</strong>
+    <strong>FlowMapper Agent</strong>
     <span id="chat-status" class="muted"></span>
     <button class="btn ghost small" id="chat-close">✕</button>
   </header>
   <div class="chat-log" id="chat-log">
-    <div class="msg agent">Posez une question sur l'architecture : « Décris l'application E-Commerce », « Qui dépend de la base Payments ? », « Propose un nom pour le cluster 1 », « Quels flux seront bloqués à l'enforcement ? »</div>
+    <div class="msg agent">Ask a question about the architecture: "Describe the E-Commerce application", "Who depends on the Payments database?", "Propose a name for cluster 1", "Which flows will be blocked at enforcement?"</div>
   </div>
   <form id="chat-form">
-    <input type="text" id="chat-input" placeholder="Votre question…" autocomplete="off">
-    <button class="btn" type="submit">Envoyer</button>
+    <input type="text" id="chat-input" placeholder="Your question…" autocomplete="off">
+    <button class="btn" type="submit">Send</button>
   </form>
 </section>
 

@@ -278,12 +278,12 @@ def _fmt_period(p: tuple[datetime, datetime]) -> str:
 
 
 def diff_to_markdown(diff: ArchDiff) -> str:
-    scope = f"de l'application **{diff.app}**" if diff.app else "de l'ensemble du parc"
-    out = [f"# Changements {scope}", f"Période A : {_fmt_period(diff.period_a)} ({diff.stats_a['flows']} flux) · Période B : {_fmt_period(diff.period_b)} ({diff.stats_b['flows']} flux)", ""]
+    scope = f"in application **{diff.app}**" if diff.app else "across the whole estate"
+    out = [f"# Changes {scope}", f"Period A: {_fmt_period(diff.period_a)} ({diff.stats_a['flows']} flows) · Period B: {_fmt_period(diff.period_b)} ({diff.stats_b['flows']} flows)", ""]
     if diff.total_changes == 0:
-        out.append("Aucun changement structurel détecté entre les deux périodes.")
+        out.append("No structural change detected between the two periods.")
         return "\n".join(out)
-    out.append(f"**{diff.total_changes} changements** détectés.")
+    out.append(f"**{diff.total_changes} changes** detected.")
 
     def section(title: str, rows: list[str]):
         if rows:
@@ -291,17 +291,17 @@ def diff_to_markdown(diff: ArchDiff) -> str:
             out.append(f"## {title} ({len(rows)})")
             out.extend(f"- {r}" for r in rows)
 
-    section("Applications apparues", [f"{a['name']} ({a['kind']}, {a['env'] or 'sans env'}, {a['workloads']} workloads)" for a in diff.apps_added])
-    section("Applications disparues", [f"{a['name']} ({a['kind']}, {a['env'] or 'sans env'}, {a['workloads']} workloads)" for a in diff.apps_removed])
-    section("Nouveaux workloads", [f"{w['workload']} — {w['app']}, rôle {w['role']}, tier {w['tier']}" for w in diff.workloads_added])
-    section("Workloads disparus", [f"{w['workload']} — {w['app']}, rôle {w['role']}" for w in diff.workloads_removed])
-    section("Workloads ayant changé d'application", [f"{w['workload']} : {w['from']} → {w['to']}" for w in diff.workloads_moved])
-    section("Nouvelles dépendances applicatives", [f"{d['source']} → {d['target']} : {', '.join(d['services'])} ({d['connections']} conn., {d['decision']})" for d in diff.deps_added])
-    section("Dépendances applicatives disparues", [f"{d['source']} → {d['target']} : {', '.join(d['services'])} ({d['connections']} conn.)" for d in diff.deps_removed])
-    section("Changements de décision de policy", [f"{c['source']} → {c['target']} {c['name']} ({c['service']}) : {c['from']} → **{c['to']}** ({c['connections']} conn.)" for c in diff.decision_changes])
-    section("Variations de volume (×2 ou ÷2)", [f"{v['source']} → {v['target']} : {v['per_day_a']} → {v['per_day_b']} conn./jour (×{v['ratio']})" for v in diff.volume_changes])
-    section("Nouveaux flux (workload → workload)", [f"{s['source']} → {s['target']} {s['name']} ({s['service']}), {s['connections']} conn., {s['decision']}" for s in diff.services_added])
-    section("Flux disparus (workload → workload)", [f"{s['source']} → {s['target']} {s['name']} ({s['service']}), {s['connections']} conn." for s in diff.services_removed])
-    section("Changements de rôle déduit", [f"{r['workload']} : {r['from']} → {r['to']}" for r in diff.role_changes])
-    section("Changements de tier", [f"{t['workload']} : tier {t['from']} → {t['to']}" for t in diff.tier_changes])
+    section("Applications added", [f"{a['name']} ({a['kind']}, {a['env'] or 'no env'}, {a['workloads']} workloads)" for a in diff.apps_added])
+    section("Applications removed", [f"{a['name']} ({a['kind']}, {a['env'] or 'no env'}, {a['workloads']} workloads)" for a in diff.apps_removed])
+    section("New workloads", [f"{w['workload']} — {w['app']}, role {w['role']}, tier {w['tier']}" for w in diff.workloads_added])
+    section("Workloads gone", [f"{w['workload']} — {w['app']}, role {w['role']}" for w in diff.workloads_removed])
+    section("Workloads that changed application", [f"{w['workload']}: {w['from']} → {w['to']}" for w in diff.workloads_moved])
+    section("New application dependencies", [f"{d['source']} → {d['target']}: {', '.join(d['services'])} ({d['connections']} conn., {d['decision']})" for d in diff.deps_added])
+    section("Application dependencies gone", [f"{d['source']} → {d['target']}: {', '.join(d['services'])} ({d['connections']} conn.)" for d in diff.deps_removed])
+    section("Policy decision changes", [f"{c['source']} → {c['target']} {c['name']} ({c['service']}): {c['from']} → **{c['to']}** ({c['connections']} conn.)" for c in diff.decision_changes])
+    section("Volume variations (×2 or ÷2)", [f"{v['source']} → {v['target']}: {v['per_day_a']} → {v['per_day_b']} conn./day (×{v['ratio']})" for v in diff.volume_changes])
+    section("New flows (workload → workload)", [f"{s['source']} → {s['target']} {s['name']} ({s['service']}), {s['connections']} conn., {s['decision']}" for s in diff.services_added])
+    section("Flows gone (workload → workload)", [f"{s['source']} → {s['target']} {s['name']} ({s['service']}), {s['connections']} conn." for s in diff.services_removed])
+    section("Inferred role changes", [f"{r['workload']}: {r['from']} → {r['to']}" for r in diff.role_changes])
+    section("Tier changes", [f"{t['workload']}: tier {t['from']} → {t['to']}" for t in diff.tier_changes])
     return "\n".join(out)

@@ -87,7 +87,7 @@ def _ts() -> str:
 class Enricher:
     def __init__(self, llm: Any = None, model: Optional[str] = None, language: Optional[str] = None, batch_size: int = 25):
         self.model_name = model or os.getenv("FLOWMAPPER_MODEL", "anthropic:claude-sonnet-5-5")
-        self.language = language or os.getenv("FLOWMAPPER_LANGUAGE", "fr")
+        self.language = language or os.getenv("FLOWMAPPER_LANGUAGE", "en")
         self.batch_size = batch_size
         self._llm = llm
 

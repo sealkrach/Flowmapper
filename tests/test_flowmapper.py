@@ -116,7 +116,7 @@ def test_api(samples):
         assert client.get("/api/graph?level=app").status_code == 200
         assert client.get("/api/apps/Payments").json()["group"]["member_count"] == 4
         d = client.get("/api/diff?app=CRM&days=3").json()
-        assert d["markdown"].startswith("# Changements") and any(x["target"] == "Payments" for x in d["diff"]["deps_added"])
+        assert d["markdown"].startswith("# Changes") and any(x["target"] == "Payments" for x in d["diff"]["deps_added"])
         assert client.post("/api/apps/cluster:1/rename", json={"name": "Legacy ERP"}).json()["name"] == "Legacy ERP"
         assert client.get("/api/export?format=mermaid").text.startswith("flowchart")
 
@@ -132,10 +132,10 @@ class FakeEnricher:
         if schema is ClusterBatch:
             props = []
             for c in payload["clusters"]:
-                roles = [WorkloadRoleProposal(workload=w["workload"], role_class="database" if "db" in w["hostname"] else "app", role_label="Serveur", confidence=0.8, rationale="hostname") for w in c["workloads"]]
+                roles = [WorkloadRoleProposal(workload=w["workload"], role_class="database" if "db" in w["hostname"] else "app", role_label="Server", confidence=0.8, rationale="hostname") for w in c["workloads"]]
                 props.append(ClusterProposal(cluster=c["cluster"], name="Legacy ERP", app_label="Legacy ERP", env_label="Production", confidence=0.85, rationale="hostnames erp-*", workload_roles=roles))
             return ClusterBatch(proposals=props)
-        return RoleBatch(proposals=[WorkloadRoleProposal(workload=w["workload"], role_class="worker", role_label="Serveur de reporting", confidence=0.6, rationale="consomme mssql") for w in payload["workloads"]])
+        return RoleBatch(proposals=[WorkloadRoleProposal(workload=w["workload"], role_class="worker", role_label="Reporting server", confidence=0.6, rationale="consumes mssql") for w in payload["workloads"]])
 
 
 def test_enrichment_proposals_and_hitl(samples, monkeypatch):

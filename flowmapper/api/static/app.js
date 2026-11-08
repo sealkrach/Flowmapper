@@ -21,7 +21,7 @@
     client: "ellipse", unknown: "ellipse",
   };
   const AGENT_SERVICES = new Set(["ssh", "rdp", "winrm", "winrm-https", "vnc", "telnet", "zabbix-agent", "node-exporter", "nrpe", "msrpc", "netbios-ns", "netbios-dgm", "netbios-ssn", "icmp", "snmp", "kubelet", "kube-proxy"]);
-  const DECISION_LABEL = { allowed: "autorisé", potentially_blocked: "potentiellement bloqué", blocked: "bloqué", unknown: "inconnu" };
+  const DECISION_LABEL = { allowed: "allowed", potentially_blocked: "potentially blocked", blocked: "blocked", unknown: "unknown" };
   const SEVERITY = { allowed: 0, unknown: 1, potentially_blocked: 2, blocked: 3 };
 
   const state = {
@@ -48,7 +48,7 @@
     return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
   function fmt(n) {
-    return Number(n || 0).toLocaleString("fr-FR");
+    return Number(n || 0).toLocaleString("en-US");
   }
   async function api(path, opts = {}) {
     const res = await fetch(path, opts);
@@ -64,10 +64,10 @@
     if (EMBEDDED) {
       // Static snapshots may run in sandboxed viewers that refuse downloads: copy instead.
       if (content.startsWith("data:")) {
-        openDetails(`<h2>Export PNG</h2><div class="kind">Appui long / clic droit sur l'image pour l'enregistrer.</div><img src="${content}" alt="graphe" style="max-width:100%;border:1px solid var(--border);border-radius:6px">`);
+        openDetails(`<h2>PNG export</h2><div class="kind">Long-press / right-click the image to save it.</div><img src="${content}" alt="graph" style="max-width:100%;border:1px solid var(--border);border-radius:6px">`);
         return;
       }
-      navigator.clipboard.writeText(content).then(() => toast(`${name} copié dans le presse-papiers`), () => openDetails(`<h2>${esc(name)}</h2><pre>${esc(content)}</pre>`));
+      navigator.clipboard.writeText(content).then(() => toast(`${name} copied to the clipboard`), () => openDetails(`<h2>${esc(name)}</h2><pre>${esc(content)}</pre>`));
       return;
     }
     const a = document.createElement("a");
@@ -302,7 +302,7 @@
     applyDiffHighlight();
     $("#empty-state").hidden = true;
     const shownApps = cy.nodes('[type="app"]').length, shownWl = cy.nodes('[type="workload"]').length;
-    $("#dataset-summary").textContent = `${fmt(state.stats.flows)} flux · ${fmt(state.stats.workloads)} workloads · ${fmt(state.stats.groups)} applications — affichés : ${shownApps} applications${state.level === "workload" ? `, ${shownWl} workloads` : ""}, ${cy.edges().length} flux agrégés`;
+    $("#dataset-summary").textContent = `${fmt(state.stats.flows)} flows · ${fmt(state.stats.workloads)} workloads · ${fmt(state.stats.groups)} applications — shown: ${shownApps} applications${state.level === "workload" ? `, ${shownWl} workloads` : ""}, ${cy.edges().length} aggregated flows`;
   }
 
   function applySearch(q) {
@@ -346,19 +346,19 @@
       render();
       refreshProposalCount();
     } catch (err) {
-      if (!/No flows loaded/.test(err.message)) toast(`Erreur : ${err.message}`);
+      if (!/No flows loaded/.test(err.message)) toast(`Error: ${err.message}`);
       $("#empty-state").hidden = false;
     }
   }
   function fillSelects() {
     const envSel = $("#f-env"), appSel = $("#f-app");
     const envVal = envSel.value, appVal = appSel.value;
-    envSel.innerHTML = '<option value="">Tous</option>' + (state.stats.envs || []).map((e) => `<option value="${esc(e)}">${esc(e)}</option>`).join("");
-    appSel.innerHTML = '<option value="">Toutes</option>' + state.apps.filter((a) => a.kind !== "unmanaged").map((a) => `<option value="${esc(a.key)}">${esc(a.name)}${a.env ? ` (${esc(a.env)})` : ""}</option>`).join("");
+    envSel.innerHTML = '<option value="">All</option>' + (state.stats.envs || []).map((e) => `<option value="${esc(e)}">${esc(e)}</option>`).join("");
+    appSel.innerHTML = '<option value="">All</option>' + state.apps.filter((a) => a.kind !== "unmanaged").map((a) => `<option value="${esc(a.key)}">${esc(a.name)}${a.env ? ` (${esc(a.env)})` : ""}</option>`).join("");
     envSel.value = envVal; appSel.value = appVal;
     const diffSel = $("#diff-app");
     const diffVal = diffSel.value;
-    diffSel.innerHTML = '<option value="">Tout le parc</option>' + state.apps.filter((a) => a.kind !== "unmanaged").map((a) => `<option value="${esc(a.key)}">${esc(a.name)}${a.env ? ` (${esc(a.env)})` : ""}</option>`).join("");
+    diffSel.innerHTML = '<option value="">Whole estate</option>' + state.apps.filter((a) => a.kind !== "unmanaged").map((a) => `<option value="${esc(a.key)}">${esc(a.name)}${a.env ? ` (${esc(a.env)})` : ""}</option>`).join("");
     diffSel.value = diffVal;
   }
 
@@ -369,11 +369,11 @@
     el.classList.add("open");
   }
   function clearDetails() {
-    $("#details").innerHTML = '<div class="details-empty">Sélectionnez une application, un workload ou un flux.</div>';
+    $("#details").innerHTML = '<div class="details-empty">Select an application, a workload or a flow.</div>';
     $("#details").classList.remove("open");
   }
   function pills(services, limit = 8) {
-    return services.slice(0, limit).map((s) => `<span class="pill ${esc(s.decision)}" title="${esc(s.service)} · ${fmt(s.connections)} connexions${s.processes && s.processes.length ? " · " + esc(s.processes.join(", ")) : ""}">${esc(s.name)} <small>${fmt(s.connections)}</small></span>`).join("") + (services.length > limit ? `<span class="pill">+${services.length - limit}</span>` : "");
+    return services.slice(0, limit).map((s) => `<span class="pill ${esc(s.decision)}" title="${esc(s.service)} · ${fmt(s.connections)} connections${s.processes && s.processes.length ? " · " + esc(s.processes.join(", ")) : ""}">${esc(s.name)} <small>${fmt(s.connections)}</small></span>`).join("") + (services.length > limit ? `<span class="pill">+${services.length - limit}</span>` : "");
   }
 
   async function showNode(node) {
@@ -394,28 +394,28 @@
     const deps = info.dependencies;
     const blocked = [];
     for (const d of [...deps.outbound, ...deps.inbound]) for (const s of d.services) if (s.decision !== "allowed") blocked.push({ ...s, dep: d.name });
-    let html = `<h2>${esc(g.name)}</h2><div class="kind">${esc(g.kind === "labeled" ? "Application labellisée" : g.kind === "cluster" ? "Cluster découvert (sans label app)" : "IP non gérées")}${g.env ? " · " + esc(g.env) : ""} · ${g.member_count} workloads${g.shared ? " · <b>service partagé</b>" : ""}</div>`;
+    let html = `<h2>${esc(g.name)}</h2><div class="kind">${esc(g.kind === "labeled" ? "Labeled application" : g.kind === "cluster" ? "Discovered cluster (no app label)" : "Unmanaged IPs")}${g.env ? " · " + esc(g.env) : ""} · ${g.member_count} workloads${g.shared ? " · <b>shared service</b>" : ""}</div>`;
     if (g.kind === "cluster" && g.evidence) {
-      html += `<h4>Indices</h4><div class="muted">Services servis : ${esc((g.evidence.served_services || []).join(", ") || "—")}<br>Parle avec : ${esc((g.evidence.peer_groups || []).join(", ") || "—")}${g.evidence.candidate_app ? `<br>Candidat : partie non labellisée de <b>${esc(g.evidence.candidate_app)}</b>` : ""}</div>`;
+      html += `<h4>Evidence</h4><div class="muted">Services served: ${esc((g.evidence.served_services || []).join(", ") || "—")}<br>Talks with: ${esc((g.evidence.peer_groups || []).join(", ") || "—")}${g.evidence.candidate_app ? `<br>Candidate: unlabeled part of <b>${esc(g.evidence.candidate_app)}</b>` : ""}</div>`;
     }
-    html += `<h4>Workloads par tier</h4>`;
+    html += `<h4>Workloads by tier</h4>`;
     for (const t of Object.keys(tiers).sort()) {
       html += `<div class="tier"><span class="t">tier ${esc(t)}</span>` + tiers[t].map((w) => `<span class="wl" data-wl="${esc(w.id)}" title="${esc(w.role_class)} (${esc(w.role_source)})"><i class="sw role-${ROLE_GROUP[w.role_class] || "unknown"}"></i>${esc(w.name)}${w.shared ? " ⚠" : ""}</span>`).join(", ") + `</div>`;
     }
-    const depBlock = (list, title) => list.length ? `<h4>${title}</h4>` + list.map((dep) => `<div class="dep"><b data-app="${esc(dep.group)}">${esc(dep.name)}</b>${dep.shared ? ' <span class="pill">partagé</span>' : ""} <span class="muted">${fmt(dep.connections)} conn.</span><br>${pills(dep.services, 6)}</div>`).join("") : "";
-    html += depBlock(deps.outbound, "Dépend de (sortant)");
-    html += depBlock(deps.inbound, "Consommé par (entrant)");
-    if (blocked.length) html += `<h4>Flux bloqués / à risque</h4>` + blocked.slice(0, 10).map((b) => `<div class="dep"><span class="pill ${esc(b.decision)}">${esc(DECISION_LABEL[b.decision])}</span> ${esc(b.name)} avec ${esc(b.dep)} <span class="muted">${fmt(b.connections)}</span></div>`).join("");
-    html += `<h4>Actions</h4><div class="row"><button class="btn small" id="d-focus">Voir les workloads</button><button class="btn small ghost" id="d-mermaid">Copier Mermaid</button></div>`;
+    const depBlock = (list, title) => list.length ? `<h4>${title}</h4>` + list.map((dep) => `<div class="dep"><b data-app="${esc(dep.group)}">${esc(dep.name)}</b>${dep.shared ? ' <span class="pill">shared</span>' : ""} <span class="muted">${fmt(dep.connections)} conn.</span><br>${pills(dep.services, 6)}</div>`).join("") : "";
+    html += depBlock(deps.outbound, "Depends on (outbound)");
+    html += depBlock(deps.inbound, "Consumed by (inbound)");
+    if (blocked.length) html += `<h4>Blocked / at-risk flows</h4>` + blocked.slice(0, 10).map((b) => `<div class="dep"><span class="pill ${esc(b.decision)}">${esc(DECISION_LABEL[b.decision])}</span> ${esc(b.name)} with ${esc(b.dep)} <span class="muted">${fmt(b.connections)}</span></div>`).join("");
+    html += `<h4>Actions</h4><div class="row"><button class="btn small" id="d-focus">View workloads</button><button class="btn small ghost" id="d-mermaid">Copy Mermaid</button></div>`;
     if (!EMBEDDED) {
-      html += `<form class="rename" id="d-rename"><input name="name" placeholder="Nouveau nom d'application" value="${esc(g.name)}" required><input name="app" placeholder="Label Illumio app (optionnel)"><input name="env" placeholder="Label Illumio env (optionnel)" value="${esc(g.env || "")}"><button class="btn small ghost" type="submit">Renommer (modèle local)</button></form>`;
+      html += `<form class="rename" id="d-rename"><input name="name" placeholder="New application name" value="${esc(g.name)}" required><input name="app" placeholder="Illumio app label (optional)"><input name="env" placeholder="Illumio env label (optional)" value="${esc(g.env || "")}"><button class="btn small ghost" type="submit">Rename (local model)</button></form>`;
     }
-    if (info.proposal) html += `<h4>Proposition IA</h4>` + proposalCard({ ...info.proposal, current_name: g.name }, "clusters");
-    html += `<h4>Rapport</h4><pre>${esc(info.markdown)}</pre>`;
+    if (info.proposal) html += `<h4>AI proposal</h4>` + proposalCard({ ...info.proposal, current_name: g.name }, "clusters");
+    html += `<h4>Report</h4><pre>${esc(info.markdown)}</pre>`;
     openDetails(html);
     wireReviewButtons(() => showApp(g.key));
     $("#d-focus").onclick = () => focusApp(g.key);
-    $("#d-mermaid").onclick = () => navigator.clipboard.writeText(info.mermaid).then(() => toast("Mermaid copié"), () => download(`${g.name}.mmd`, info.mermaid));
+    $("#d-mermaid").onclick = () => navigator.clipboard.writeText(info.mermaid).then(() => toast("Mermaid copied"), () => download(`${g.name}.mmd`, info.mermaid));
     $$("#details [data-app]").forEach((b) => (b.onclick = () => showApp(b.dataset.app)));
     $$("#details [data-wl]").forEach((b) => (b.onclick = () => showWorkload(b.dataset.wl)));
     const form = $("#d-rename");
@@ -424,7 +424,7 @@
       const fd = new FormData(form);
       try {
         await api(`api/apps/${encodeURIComponent(g.key)}/rename`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: fd.get("name"), app: fd.get("app") || null, env: fd.get("env") || null }) });
-        toast("Application renommée");
+        toast("Application renamed");
         await reloadAll();
         showApp(g.key);
       } catch (err) { toast(err.message); }
@@ -437,15 +437,15 @@
       w = EMBEDDED ? EMBEDDED.workloads[id] : await api(`api/workloads/${encodeURIComponent(id)}`);
     } catch (err) { return toast(err.message); }
     const svc = (list, key) => list.map((p) => `<div class="dep"><b>${esc(p[key])}</b><br>${pills(p.services, 5)}</div>`).join("") || '<div class="muted">—</div>';
-    let html = `<h2>${esc(w.name)}</h2><div class="kind">${w.managed ? "Workload géré (VEN)" : "IP non gérée"} · ${esc(w.application || "sans application")}${w.tier != null ? ` · tier ${w.tier}` : ""}${w.shared ? ` · <b>partagé (${esc(w.shared_kind)})</b>` : ""}</div>`;
-    html += `<table><tr><th>Rôle</th><td><i class="sw role-${ROLE_GROUP[w.role_class] || "unknown"}"></i>${esc(w.role_class)} ${w.role_label && w.role_source === "ai" ? ` — ${esc(w.role_label)}` : ""} <span class="muted">(${esc(w.role_source === "label" ? "label Illumio" : w.role_source === "ports" ? "déduit des ports" : w.role_source === "hostname" ? "déduit du hostname" : w.role_source === "ai" ? "proposé par l'IA, validé" : "non déterminé")})</span></td></tr>`;
+    let html = `<h2>${esc(w.name)}</h2><div class="kind">${w.managed ? "Managed workload (VEN)" : "Unmanaged IP"} · ${esc(w.application || "no application")}${w.tier != null ? ` · tier ${w.tier}` : ""}${w.shared ? ` · <b>shared (${esc(w.shared_kind)})</b>` : ""}</div>`;
+    html += `<table><tr><th>Role</th><td><i class="sw role-${ROLE_GROUP[w.role_class] || "unknown"}"></i>${esc(w.role_class)} ${w.role_label && w.role_source === "ai" ? ` — ${esc(w.role_label)}` : ""} <span class="muted">(${esc(w.role_source === "label" ? "Illumio label" : w.role_source === "ports" ? "inferred from ports" : w.role_source === "hostname" ? "inferred from hostname" : w.role_source === "ai" ? "AI-proposed, validated" : "undetermined")})</span></td></tr>`;
     html += `<tr><th>IP</th><td>${esc((w.ips || []).join(", "))}</td></tr>`;
     html += `<tr><th>Labels</th><td>${Object.entries(w.labels || {}).map(([k, v]) => `<span class="pill">${esc(k)}: ${esc(v)}</span>`).join("") || "—"}</td></tr>`;
-    html += `<tr><th>Trafic</th><td>${fmt(w.in_connections)} entrant · ${fmt(w.out_connections)} sortant</td></tr>`;
-    html += `<tr><th>Services servis</th><td>${(w.served || []).map((s) => `<span class="pill">${esc(s.service)} <small>${fmt(s.connections)}</small></span>`).join("") || "—"}</td></tr></table>`;
-    if (w.proposal) html += `<h4>Proposition IA</h4>` + proposalCard({ ...w.proposal, hostname: w.name, current_role: w.role_class }, "workloads");
-    html += `<h4>Appelle (${(w.talks_to || []).length})</h4>` + svc(w.talks_to || [], "to");
-    html += `<h4>Appelé par (${(w.called_by || []).length})</h4>` + svc(w.called_by || [], "from");
+    html += `<tr><th>Traffic</th><td>${fmt(w.in_connections)} inbound · ${fmt(w.out_connections)} outbound</td></tr>`;
+    html += `<tr><th>Services served</th><td>${(w.served || []).map((s) => `<span class="pill">${esc(s.service)} <small>${fmt(s.connections)}</small></span>`).join("") || "—"}</td></tr></table>`;
+    if (w.proposal) html += `<h4>AI proposal</h4>` + proposalCard({ ...w.proposal, hostname: w.name, current_role: w.role_class }, "workloads");
+    html += `<h4>Calls (${(w.talks_to || []).length})</h4>` + svc(w.talks_to || [], "to");
+    html += `<h4>Called by (${(w.called_by || []).length})</h4>` + svc(w.called_by || [], "from");
     openDetails(html);
     wireReviewButtons(() => showWorkload(id));
   }
@@ -453,8 +453,8 @@
   function showEdge(edge) {
     const d = edge.data();
     const src = state.cy.getElementById(d.source).data("label"), dst = state.cy.getElementById(d.target).data("label");
-    let html = `<h2>${esc(src)} → ${esc(dst)}</h2><div class="kind">${fmt(d.connections)} connexions · ${esc(DECISION_LABEL[d.decision])}${d.pairs ? ` · ${d.pairs} paires de workloads` : ""}</div>`;
-    html += `<table><tr><th>Service</th><th>Nom</th><th>Conn.</th><th>Décision</th><th>Process</th></tr>` + d.services.map((s) => `<tr><td>${esc(s.service)}</td><td>${esc(s.name)}</td><td>${fmt(s.connections)}</td><td><span class="pill ${esc(s.decision)}">${esc(DECISION_LABEL[s.decision])}</span></td><td class="muted">${esc((s.processes || []).join(", "))}</td></tr>`).join("") + `</table>`;
+    let html = `<h2>${esc(src)} → ${esc(dst)}</h2><div class="kind">${fmt(d.connections)} connections · ${esc(DECISION_LABEL[d.decision])}${d.pairs ? ` · ${d.pairs} workload pairs` : ""}</div>`;
+    html += `<table><tr><th>Service</th><th>Name</th><th>Conn.</th><th>Decision</th><th>Process</th></tr>` + d.services.map((s) => `<tr><td>${esc(s.service)}</td><td>${esc(s.name)}</td><td>${fmt(s.connections)}</td><td><span class="pill ${esc(s.decision)}">${esc(DECISION_LABEL[s.decision])}</span></td><td class="muted">${esc((s.processes || []).join(", "))}</td></tr>`).join("") + `</table>`;
     openDetails(html);
   }
 
@@ -485,69 +485,69 @@
     state.diff = d;
     $("#btn-diff-clear").hidden = false;
     const per = (p) => `${p[0].slice(0, 10)} → ${p[1].slice(0, 10)}`;
-    let html = `<h2>${d.app ? `Changements — ${esc(d.app)}` : "Changements — tout le parc"}</h2><div class="kind">A : ${per(d.period_a)} (${fmt(d.stats_a.flows)} flux) · B : ${per(d.period_b)} (${fmt(d.stats_b.flows)} flux) · <b>${d.total_changes} changements</b></div>`;
+    let html = `<h2>${d.app ? `Changes — ${esc(d.app)}` : "Changes — whole estate"}</h2><div class="kind">A: ${per(d.period_a)} (${fmt(d.stats_a.flows)} flows) · B: ${per(d.period_b)} (${fmt(d.stats_b.flows)} flows) · <b>${d.total_changes} changes</b></div>`;
     const section = (title, cls, rows) => rows.length ? `<div class="diff-section ${cls}"><h4>${title} (${rows.length})</h4><ul>${rows.map((r) => `<li>${r}</li>`).join("")}</ul></div>` : "";
     const svc = (x) => `${esc(x.name)} <span class="muted">(${esc(x.service)}, ${fmt(x.connections)})</span>`;
-    html += section("Applications apparues", "added", d.apps_added.map((a) => `${esc(a.name)} <span class="muted">${esc(a.kind)}, ${a.workloads} workloads</span>`));
-    html += section("Applications disparues", "removed", d.apps_removed.map((a) => `${esc(a.name)} <span class="muted">${esc(a.kind)}, ${a.workloads} workloads</span>`));
-    html += section("Nouveaux workloads", "added", d.workloads_added.map((w) => `<b>${esc(w.workload)}</b> — ${esc(w.app)}, ${esc(w.role)}, tier ${w.tier}`));
-    html += section("Workloads disparus", "removed", d.workloads_removed.map((w) => `<b>${esc(w.workload)}</b> — ${esc(w.app)}, ${esc(w.role)}`));
-    html += section("Changement d'application", "changed", d.workloads_moved.map((w) => `${esc(w.workload)} : ${esc(w.from)} → ${esc(w.to)}`));
-    html += section("Nouvelles dépendances", "added", d.deps_added.map((x) => `<b>${esc(x.source)} → ${esc(x.target)}</b> : ${esc(x.services.join(", "))} <span class="muted">(${fmt(x.connections)}, ${esc(DECISION_LABEL[x.decision])})</span>`));
-    html += section("Dépendances disparues", "removed", d.deps_removed.map((x) => `<b>${esc(x.source)} → ${esc(x.target)}</b> : ${esc(x.services.join(", "))} <span class="muted">(${fmt(x.connections)})</span>`));
-    html += section("Décisions de policy modifiées", "changed", d.decision_changes.map((x) => `${esc(x.source)} → ${esc(x.target)} ${esc(x.name)} : <span class="pill ${esc(x.from)}">${esc(DECISION_LABEL[x.from])}</span> → <span class="pill ${esc(x.to)}">${esc(DECISION_LABEL[x.to])}</span>`));
-    html += section("Variations de volume", "changed", d.volume_changes.map((x) => `${esc(x.source)} → ${esc(x.target)} : ${x.per_day_a} → ${x.per_day_b} conn./jour <b>×${x.ratio}</b>`));
-    html += section("Nouveaux flux", "added", d.services_added.map((x) => `${esc(x.source)} → ${esc(x.target)} ${svc(x)}${x.decision !== "allowed" ? ` <span class="pill ${esc(x.decision)}">${esc(DECISION_LABEL[x.decision])}</span>` : ""}`));
-    html += section("Flux disparus", "removed", d.services_removed.map((x) => `${esc(x.source)} → ${esc(x.target)} ${svc(x)}`));
-    html += section("Rôles déduits modifiés", "changed", d.role_changes.map((x) => `${esc(x.workload)} : ${esc(x.from)} → ${esc(x.to)}`));
-    html += section("Tiers modifiés", "changed", d.tier_changes.map((x) => `${esc(x.workload)} : tier ${x.from} → ${x.to}`));
-    if (!d.total_changes) html += `<div class="muted">Aucun changement structurel entre les deux périodes.</div>`;
-    html += `<h4>Rapport</h4><pre>${esc(out.markdown)}</pre>`;
+    html += section("Applications added", "added", d.apps_added.map((a) => `${esc(a.name)} <span class="muted">${esc(a.kind)}, ${a.workloads} workloads</span>`));
+    html += section("Applications removed", "removed", d.apps_removed.map((a) => `${esc(a.name)} <span class="muted">${esc(a.kind)}, ${a.workloads} workloads</span>`));
+    html += section("New workloads", "added", d.workloads_added.map((w) => `<b>${esc(w.workload)}</b> — ${esc(w.app)}, ${esc(w.role)}, tier ${w.tier}`));
+    html += section("Workloads gone", "removed", d.workloads_removed.map((w) => `<b>${esc(w.workload)}</b> — ${esc(w.app)}, ${esc(w.role)}`));
+    html += section("Application changed", "changed", d.workloads_moved.map((w) => `${esc(w.workload)}: ${esc(w.from)} → ${esc(w.to)}`));
+    html += section("New dependencies", "added", d.deps_added.map((x) => `<b>${esc(x.source)} → ${esc(x.target)}</b>: ${esc(x.services.join(", "))} <span class="muted">(${fmt(x.connections)}, ${esc(DECISION_LABEL[x.decision])})</span>`));
+    html += section("Dependencies gone", "removed", d.deps_removed.map((x) => `<b>${esc(x.source)} → ${esc(x.target)}</b>: ${esc(x.services.join(", "))} <span class="muted">(${fmt(x.connections)})</span>`));
+    html += section("Policy decision changes", "changed", d.decision_changes.map((x) => `${esc(x.source)} → ${esc(x.target)} ${esc(x.name)}: <span class="pill ${esc(x.from)}">${esc(DECISION_LABEL[x.from])}</span> → <span class="pill ${esc(x.to)}">${esc(DECISION_LABEL[x.to])}</span>`));
+    html += section("Volume variations", "changed", d.volume_changes.map((x) => `${esc(x.source)} → ${esc(x.target)}: ${x.per_day_a} → ${x.per_day_b} conn./day <b>×${x.ratio}</b>`));
+    html += section("New flows", "added", d.services_added.map((x) => `${esc(x.source)} → ${esc(x.target)} ${svc(x)}${x.decision !== "allowed" ? ` <span class="pill ${esc(x.decision)}">${esc(DECISION_LABEL[x.decision])}</span>` : ""}`));
+    html += section("Flows gone", "removed", d.services_removed.map((x) => `${esc(x.source)} → ${esc(x.target)} ${svc(x)}`));
+    html += section("Inferred role changes", "changed", d.role_changes.map((x) => `${esc(x.workload)}: ${esc(x.from)} → ${esc(x.to)}`));
+    html += section("Tier changes", "changed", d.tier_changes.map((x) => `${esc(x.workload)}: tier ${x.from} → ${x.to}`));
+    if (!d.total_changes) html += `<div class="muted">No structural change between the two periods.</div>`;
+    html += `<h4>Report</h4><pre>${esc(out.markdown)}</pre>`;
     openDetails(html);
     applyDiffHighlight();
   }
   async function runDiff() {
-    if (EMBEDDED) return toast("La comparaison de périodes nécessite le backend");
+    if (EMBEDDED) return toast("Period comparison requires the backend");
     const app = $("#diff-app").value, days = $("#diff-days").value || 30;
     try {
       const out = await api(`api/diff?days=${encodeURIComponent(days)}${app ? `&app=${encodeURIComponent(app)}` : ""}`);
       renderDiff(out);
-    } catch (err) { toast(`Comparaison impossible : ${err.message}`, 6000); }
+    } catch (err) { toast(`Comparison failed: ${err.message}`, 6000); }
   }
 
   // ------------------------------------------------------------------ AI proposals
   function proposalCard(p, kind) {
-    const conf = `<span class="conf">confiance ${(p.confidence * 100).toFixed(0)} %</span>`;
-    const status = p.status === "pending" ? "" : ` · <b>${p.status === "accepted" ? "acceptée" : "rejetée"}</b>`;
+    const conf = `<span class="conf">confidence ${(p.confidence * 100).toFixed(0)}%</span>`;
+    const status = p.status === "pending" ? "" : ` · <b>${p.status === "accepted" ? "accepted" : "rejected"}</b>`;
     let body;
     if (kind === "clusters") {
-      body = `<b>${esc(p.current_name || p.id)}</b> → <b>${esc(p.name)}</b>${status}${conf}<div class="why">${esc(p.rationale)}</div><div>Labels : <span class="pill">app: ${esc(p.app)}</span>${p.env ? `<span class="pill">env: ${esc(p.env)}</span>` : ""}</div>` +
+      body = `<b>${esc(p.current_name || p.id)}</b> → <b>${esc(p.name)}</b>${status}${conf}<div class="why">${esc(p.rationale)}</div><div>Labels: <span class="pill">app: ${esc(p.app)}</span>${p.env ? `<span class="pill">env: ${esc(p.env)}</span>` : ""}</div>` +
         (p.workload_roles && p.workload_roles.length ? `<div class="muted">${p.workload_roles.map((r) => `${esc(r.workload)} → ${esc(r.role_label)} (${esc(r.role_class)})`).join(" · ")}</div>` : "");
     } else {
       body = `<b>${esc(p.hostname || p.id)}</b>${p.application ? ` <span class="muted">${esc(p.application)}</span>` : ""} : ${esc(p.current_role || "?")} → <b>${esc(p.role_label)}</b> <span class="pill">${esc(p.role_class)}</span>${status}${conf}<div class="why">${esc(p.rationale)}</div>`;
     }
-    const actions = p.status === "pending" ? `<div class="row"><button class="btn small" data-review="accept" data-kind="${kind}" data-id="${esc(p.id)}">Accepter</button><button class="btn small ghost" data-review="reject" data-kind="${kind}" data-id="${esc(p.id)}">Rejeter</button></div>` : "";
+    const actions = p.status === "pending" ? `<div class="row"><button class="btn small" data-review="accept" data-kind="${kind}" data-id="${esc(p.id)}">Accept</button><button class="btn small ghost" data-review="reject" data-kind="${kind}" data-id="${esc(p.id)}">Reject</button></div>` : "";
     return `<div class="proposal ${esc(p.status)}">${body}${actions}</div>`;
   }
   function wireReviewButtons(after) {
     $$("#details [data-review]").forEach((b) => (b.onclick = async () => {
       try {
         await api(`api/proposals/${b.dataset.kind}/${encodeURIComponent(b.dataset.id)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: b.dataset.review }) });
-        toast(b.dataset.review === "accept" ? "Proposition appliquée au modèle" : "Proposition rejetée");
+        toast(b.dataset.review === "accept" ? "Proposal applied to the model" : "Proposal rejected");
         await reloadAll();
         if (after) after();
       } catch (err) { toast(err.message); }
     }));
   }
   async function showProposals() {
-    if (EMBEDDED) return toast("Les propositions IA nécessitent le backend");
+    if (EMBEDDED) return toast("AI proposals require the backend");
     let data;
     try { data = await api("api/proposals"); } catch (err) { return toast(err.message); }
     const total = data.clusters.length + data.workloads.length;
-    let html = `<h2>Propositions IA</h2><div class="kind">${data.pending} en attente · ${total} au total</div>`;
-    if (!total) html += `<div class="muted">Aucune proposition. Cliquez sur « Enrichir avec l'IA ».</div>`;
+    let html = `<h2>AI proposals</h2><div class="kind">${data.pending} pending · ${total} total</div>`;
+    if (!total) html += `<div class="muted">No proposal yet. Click "Enrich with AI".</div>`;
     if (data.clusters.length) html += `<h4>Clusters → applications</h4>` + data.clusters.map((p) => proposalCard(p, "clusters")).join("");
-    if (data.workloads.length) html += `<h4>Rôles de workloads</h4>` + data.workloads.map((p) => proposalCard(p, "workloads")).join("");
+    if (data.workloads.length) html += `<h4>Workload roles</h4>` + data.workloads.map((p) => proposalCard(p, "workloads")).join("");
     openDetails(html);
     wireReviewButtons(showProposals);
   }
@@ -561,16 +561,16 @@
     } catch (_) { /* ignore */ }
   }
   async function runEnrichment() {
-    if (EMBEDDED) return toast("L'enrichissement IA nécessite le backend");
+    if (EMBEDDED) return toast("AI enrichment requires the backend");
     const btn = $("#btn-enrich");
     btn.disabled = true;
-    toast("Enrichissement en cours (quelques dizaines de secondes)…", 60000);
+    toast("Enrichment running (a few tens of seconds)…", 60000);
     try {
       const out = await api("api/enrich", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clusters: true, roles: true, auto_apply: false }) });
-      toast(`${out.clusters} propositions de clusters, ${out.workloads} de rôles — ${out.pending} à valider`, 6000);
+      toast(`${out.clusters} cluster proposals, ${out.workloads} role proposals — ${out.pending} to review`, 6000);
       await reloadAll();
       showProposals();
-    } catch (err) { toast(`Enrichissement impossible : ${err.message}`, 8000); }
+    } catch (err) { toast(`Enrichment failed: ${err.message}`, 8000); }
     btn.disabled = false;
   }
 
@@ -617,7 +617,7 @@
   }
   async function sendChat(message) {
     addMsg("user", esc(message));
-    const pending = addMsg("agent", "<i>L'agent analyse les flux…</i>");
+    const pending = addMsg("agent", "<i>The agent is analysing the flows…</i>");
     try {
       const out = await api("api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message, thread_id: state.threadId }) });
       state.threadId = out.thread_id;
@@ -627,7 +627,7 @@
       const cmp = out.tool_calls.find((t) => t.tool === "compare_periods");
       if (cmp) { $("#diff-app").value = state.apps.find((a) => a.name === cmp.args.application || a.key === cmp.args.application)?.key || ""; $("#diff-days").value = cmp.args.days || 30; runDiff(); }
     } catch (err) {
-      pending.innerHTML = `<b>Erreur :</b> ${esc(err.message)}`;
+      pending.innerHTML = `<b>Error:</b> ${esc(err.message)}`;
     }
   }
 
@@ -655,20 +655,20 @@
     };
     $("#btn-mermaid").onclick = () => EMBEDDED ? download("flowmapper.mmd", EMBEDDED.exports.mermaid) : window.open(`api/export?format=mermaid&${exportParams()}`);
     $("#btn-markdown").onclick = () => EMBEDDED ? download("flowmapper-report.md", EMBEDDED.exports.markdown, "text/markdown") : window.open(`api/export?format=markdown&${exportParams()}`);
-    $("#btn-graphml").onclick = () => EMBEDDED ? toast("Export GraphML disponible avec le backend") : window.open(`api/export?format=graphml&${exportParams()}`);
+    $("#btn-graphml").onclick = () => EMBEDDED ? toast("GraphML export is available with the backend") : window.open(`api/export?format=graphml&${exportParams()}`);
     $("#file-input").onchange = async (e) => {
       const files = Array.from(e.target.files || []);
       if (!files.length) return;
-      if (EMBEDDED) return toast("Démo embarquée : lancez le backend pour importer vos propres flux");
+      if (EMBEDDED) return toast("Embedded demo: run the backend to import your own flows");
       const fd = new FormData();
       files.forEach((f) => fd.append("files", f));
-      toast(`Import de ${files.length} fichier(s)…`, 8000);
+      toast(`Importing ${files.length} file(s)…`, 8000);
       try {
         const out = await api("api/ingest?replace=true", { method: "POST", body: fd });
-        toast(`${fmt(out.stats.flows)} flux importés, ${out.stats.groups} applications`);
+        toast(`${fmt(out.stats.flows)} flows imported, ${out.stats.groups} applications`);
         state.threadId = null;
         await reloadAll();
-      } catch (err) { toast(`Import impossible : ${err.message}`, 6000); }
+      } catch (err) { toast(`Import failed: ${err.message}`, 6000); }
       e.target.value = "";
     };
     $("#btn-diff").onclick = runDiff;
@@ -679,8 +679,8 @@
       const chat = $("#chat");
       chat.hidden = !chat.hidden;
       if (!chat.hidden) {
-        if (EMBEDDED) $("#chat-status").textContent = "démo hors-ligne : l'agent nécessite le backend";
-        else try { const h = await api("api/health"); $("#chat-status").textContent = h.agent.available ? h.agent.detail : `indisponible — ${h.agent.detail}`; } catch (_) { /* ignore */ }
+        if (EMBEDDED) $("#chat-status").textContent = "offline demo: the agent requires the backend";
+        else try { const h = await api("api/health"); $("#chat-status").textContent = h.agent.available ? h.agent.detail : `unavailable — ${h.agent.detail}`; } catch (_) { /* ignore */ }
         $("#chat-input").focus();
       }
     };
@@ -690,7 +690,7 @@
       const msg = $("#chat-input").value.trim();
       if (!msg) return;
       $("#chat-input").value = "";
-      if (EMBEDDED) { addMsg("user", esc(msg)); addMsg("agent", "Cette démo est statique : lancez <code>flowmapper serve</code> avec une clé API pour interroger l'agent."); return; }
+      if (EMBEDDED) { addMsg("user", esc(msg)); addMsg("agent", "This demo is static: run <code>flowmapper serve</code> with an API key to query the agent."); return; }
       sendChat(msg);
     };
     $("#btn-theme").onclick = () => {

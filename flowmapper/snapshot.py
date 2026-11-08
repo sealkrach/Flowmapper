@@ -52,7 +52,7 @@ def write_snapshot(fg: FlowGraph, out_dir: Path, title: str | None = None) -> Pa
     payload = json.dumps(build_payload(fg), ensure_ascii=False, default=str).replace("</", "<\\/")
     html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
     if title:
-        html = html.replace("<title>FlowMapper — architectures applicatives depuis les flux Illumio</title>", f"<title>{title}</title>")
+        html = html.replace("<title>FlowMapper — application architectures from Illumio flows</title>", f"<title>{title}</title>")
     html = html.replace('<script src="static/vendor/graph-vendor.js"></script>', f"<script>window.FLOWMAPPER_EMBEDDED = {payload};</script>\n<script src=\"static/vendor/graph-vendor.js\"></script>")
     (out_dir / "index.html").write_text(html, encoding="utf-8")
     return out_dir / "index.html"

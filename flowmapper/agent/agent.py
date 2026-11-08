@@ -43,7 +43,7 @@ Rules:
 - The batch AI enrichment (`run_ai_enrichment`) proposes cluster names/labels and workload
   roles; proposals stay pending until a human accepts them (`review_proposal`). Only accept or
   reject a proposal when the user explicitly asks for it.
-- For "what changed" questions ("qu'est-ce qui a changé dans CRM ce mois-ci ?"), call
+- For "what changed" questions ("what changed in CRM this month?"), call
   `compare_periods` (days=30 for "this month", or explicit dates) and write a narrative: lead
   with the significant changes (new dependencies, new workloads, flows now blocked, volume
   spikes), then the minor ones, and say what deserves a check before enforcement. Mention
