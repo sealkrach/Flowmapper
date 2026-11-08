@@ -13,6 +13,8 @@ Illumio PCE ──┬─ export CSV Explorer ───────┐
                                                               └─► outils LangChain ─► agent LangGraph (chat)
 ```
 
+![Vue Applications : carte applicative par environnement, infra partagée masquée, flux bloqués en rouge](docs/ui-applications.png)
+
 ## Démarrage rapide
 
 ```bash
@@ -98,6 +100,8 @@ UI : section *Comparer deux périodes* → rapport dans le panneau de détail et
 diff structuré, l'agent rédige le narratif en commençant par les changements significatifs et les risques.
 
 ## UI
+
+![Vue Workloads : environnements → applications → workloads rangés par tiers (formes par rôle), focus sur E-Commerce](docs/ui-workloads.png)
 
 - Vue **Applications** (fcose) ou **Workloads** (diagramme déterministe : environnements → applications → tiers).
 - Filtres : environnement, focus sur une application et ses voisines, infra partagée, IP externes, flux d'administration, décisions de policy, connexions minimales, ports, recherche.
