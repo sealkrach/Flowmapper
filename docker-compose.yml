@@ -1,0 +1,9 @@
+services:
+  flowmapper:
+    build: .
+    ports: ["8000:8000"]
+    env_file: .env
+    volumes:
+      - ./exports:/data:ro
+    environment:
+      FLOWMAPPER_FILES: ""   # e.g. /data/explorer_export.csv
